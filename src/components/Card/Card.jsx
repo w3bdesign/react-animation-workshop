@@ -14,7 +14,7 @@ const Card = ({
     suit,
     state,
     player,
-    winner
+    winner,
 }) => {
     const { intersectsPlayArea, dispatch, state: gameState } = useContext(GameContext);
     const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +24,8 @@ const Card = ({
     const [rotation, setRotation] = useState((Math.random() - 0.5) * 2);
     const [position, setPosition] = useState({ x: 0, y: 0 });
 
-    const isOnTop = gameState.currentCard === index;
+    const isOnTop = gameState.currentPlayerCard === zIndex;
+    const isGameOver = gameState.gameState === 'game_over'
 
     useEffect(() => {
         if (state !== CardState.KRIG_CLOSED) {
@@ -33,6 +34,13 @@ const Card = ({
     }, [position, state]);
 
     useEffect(() => {
+        if (state === CardState.SHUFFLED) {
+            setPosition(getPositionForState(state, index, player));
+            setRotation(0)
+            setIsOpen(false);
+            setZIndex(index)
+            return
+        }
         if (state !== CardState.CLOSED) {
             setPosition(getPositionForState(state, index, player));
             setZIndex(-index)
@@ -52,24 +60,16 @@ const Card = ({
     }, [winner]);
 
     return (
-        <motion.div
+        <div
             className={classNames('Card__wrapper', state, player)}
             animate={{ rotate: rotation, ...position }}
             style={{ zIndex, originY: `-${Sizes.CARD_HEIGHT / 2}px` }}
-            drag={isOnTop}
-            dragElastic={1}
-            dragConstraints={{ top: 0, right: 0, bottom: 0, left: 0 }}
-            onDragEnd={(event) => {
-                if (intersectsPlayArea(event)) {
-                    dispatch({ type: Action.PLAY });
-                }
-            }}
-            whileHover={isOnTop && { scale: 1.05 }}
+            // TODO: Oppgave 1 og 2 her
         >
-            <motion.div className={classNames('Card', isOpen ? 'open' : 'closed', suit)}>
+            <div className={classNames('Card', isOpen ? 'open' : 'closed', suit)}>
                 {isOpen && <CardFace value={value} />}
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     )
 };
 
